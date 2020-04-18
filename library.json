@@ -1,0 +1,23 @@
+{
+    "name": "CmdProcessing",
+    "keywords": "cmd,serial",
+    "description": "CMD progessing",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/shadowroot/Arduino-cmd-processing"
+    },
+    "authors":
+    [
+      {
+        "name": "Jan Tlamicha",
+        "email": "",
+        "url": "https://github.com/shadowroot/Arduino-cmd-processing",
+        "maintainer": true
+      },
+    ],
+    "dependencies": [],
+    "version": "0.0.1",
+    "frameworks": "arduino",
+    "platforms": "*"
+  }
