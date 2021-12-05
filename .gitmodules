@@ -1,0 +1,9 @@
+[submodule "lib/Regexp"]
+	path = lib/Regexp
+	url = https://github.com/nickgammon/Regexp.git
+[submodule "lib/nanopb"]
+	path = lib/nanopb
+	url = https://github.com/nanopb/nanopb.git
+[submodule "lib/RemoteArduino"]
+	path = lib/RemoteArduino
+	url = https://github.com/JayLooi/RemoteArduino.git
