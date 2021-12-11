@@ -1,0 +1,38 @@
+
+uart:
+
+structs:
+  example:
+    - name: string
+
+commands:
+  set:
+    - set_temp: {
+        uart_cmd: 0x2, 
+        #temperature in deg celsius
+        arguments: [float32(0,30)],
+        return: boolean,
+        description: sets target temperature in degrees Celsius, true if setting is ok
+      }
+  get:
+    - get_temp: {
+        uart_data: 0x3,
+        type: float32,
+        description: Returns current temperature in degrees Celsius
+      }
+    - status: {
+        uart_data: 0x4,
+        type: boolean,
+        description: Returns status of running basic program
+      }
+    # - watchdog: {
+    #     type: boolean,
+    #     description: Check running state
+    #   }
+  call:
+    - fn: {
+        uart_data: 0x5,
+        description: Callable function,
+        arguments: [],
+        return: boolean
+      }

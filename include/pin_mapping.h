@@ -37,13 +37,13 @@ const pin_map [] pin_mapping = {
 /*
  * 
 */
-int get_pin(const char * pin_desc, uint8_t * pin_mapped){
+uint8_t get_pin(const char * pin_desc, uint8_t * pin_mapped){
     for(uint8_t i=0; i < sizeof(pin_mapping); i++){
         if(strncmp(pin_desc, pin_mapping[i].pin_name, strlen(pin_mapping[i].pin_name) == 0){
             *pin_mapped = pin_mapping[i].pin;
             return 0;
         }
     }
-    return -1;
+    return 1;
 }
 

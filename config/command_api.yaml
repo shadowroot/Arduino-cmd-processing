@@ -1,0 +1,44 @@
+
+i2c:  
+  address: 0x01
+
+structs:
+  example:
+    - name: string
+
+commands:
+  set:
+    - set_temp: {
+        i2c_data: 0x2, 
+        #temperature in deg celsius
+        type: thermostat,
+        arguments: [float32(0,30)],
+        return: boolean,
+        description: sets target temperature in degrees Celsius, true if setting is ok,
+        position: pre_loop,
+        global_var: current_temp
+      }
+  get:
+    - get_temp: {
+        i2c_data: 0x3,
+        type: temperature,
+        data_type: float32,
+        description: Returns current temperature in degrees Celsius,
+        global_var: current_temp
+      }
+    # - watchdog: {
+    #     type: boolean,
+    #     description: Check running state
+    #   }
+  call:
+    - status: {
+        i2c_data: 0x4,
+        type: boolean,
+        description: Returns status of running basic program,
+        global_var: program_status
+      }
+    - fn: {
+        description: Callable function,
+        arguments: [],
+        return: boolean
+      }
