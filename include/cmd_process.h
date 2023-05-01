@@ -21,11 +21,15 @@ enum CMDTypes {
 
 /**
  * @brief CMDSerial class
- * 
+ * Compromises - 
+ * 1. JSON, if you want to use just RPC without any asynchronous events, then you're better off using simpleRPC library.
+ * 2. No support for multiple arguments, but you can use single argument.
+ * 3. No support for multiple return values, but you can use single return value.
+ * 4. No support for multiple commands, but you can use single command.
 */
 class CMDSerial {
 public:
-    CMDSerial(const HardwareSerial& serial, const DynamicJsonDocument& doc, const Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
+    CMDSerial(Stream& serial, const DynamicJsonDocument& doc, const Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
     void setup_hook();
     void loop_hook();
     void cmdProcess();
@@ -61,14 +65,28 @@ public:
     bool isEvent(){
         return strcmp(doc["type"], "event") == 0;
     }
+    bool receivedMsg(){
+        return doc.size() > 0;
+    }
+    bool isCmdProcessedSuccessfully(){
+        return cmdProcessedSuccessfully;
+    }
+    void sendMsg(DynamicJsonDocument& doc){
+        serializeJson(doc, serial);
+    }
+    DynamicJsonDocument& getDoc(){
+        return doc;
+    }
 private:
     DynamicJsonDocument doc;
-    HardwareSerial serial;
+    Stream& serial;
     Log log;
     char *errorMsg;
     bool errorProcessing;
     CMD<void (*)(),const char *,void*, void*> * cmd;
     CMDTypes type;
+    bool cmdProcessedSuccessfully;
+    bool processingMsg;
 };
 
 void CMDSerial::setup_hook(){
