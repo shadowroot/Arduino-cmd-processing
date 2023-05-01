@@ -26,10 +26,14 @@ enum CMDTypes {
  * 2. No support for multiple arguments, but you can use single argument.
  * 3. No support for multiple return values, but you can use single return value.
  * 4. No support for multiple commands, but you can use single command.
+ * 5. BSON would not save much space.
+ * 
+ * LOG messages are asynchronous, so they could be sent at any time.
+ * RPC messages are synchronous, so they are sent only when the previous command is processed.
 */
 class CMDSerial {
 public:
-    CMDSerial(Stream& serial, const DynamicJsonDocument& doc, const Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
+    CMDSerial(Stream& serial, DynamicJsonDocument& doc, Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
     void setup_hook();
     void loop_hook();
     void cmdProcess();
@@ -78,15 +82,16 @@ public:
         return doc;
     }
 private:
-    DynamicJsonDocument doc;
+    DynamicJsonDocument& doc;
     Stream& serial;
-    Log log;
+    Log& log;
     char *errorMsg;
     bool errorProcessing;
     CMD<void (*)(),const char *,void*, void*> * cmd;
     CMDTypes type;
     bool cmdProcessedSuccessfully;
     bool processingMsg;
+    unsigned int msgID;
 };
 
 void CMDSerial::setup_hook(){

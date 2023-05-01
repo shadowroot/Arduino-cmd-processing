@@ -8,7 +8,7 @@
 
 class CMDRouter{
     public:
-        CMDRouter(CMDSerial* cmdSerial1, CMDSerial* cmdSerial2, const Log& log): cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), log(log){}
+        CMDRouter(unsigned int deviceID, CMDSerial* cmdSerial1, CMDSerial* cmdSerial2, const Log& log): deviceID(deviceID), cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), log(log){}
         void setup_hook(){
             cmdSerial1->setup_hook();
             cmdSerial2->setup_hook();
@@ -26,9 +26,10 @@ class CMDRouter{
             }
         }
     private:
-        Log log;
+        Log& log;
         CMDSerial * cmdSerial1;
         CMDSerial * cmdSerial2;
+        unsigned int deviceID;
 };
 
 #endif // CMD_ROUTING_H

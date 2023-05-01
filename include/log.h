@@ -6,7 +6,7 @@
 
 class Log {
 public:
-    Log(const HardwareSerial& serial, const DynamicJsonDocument& doc): serial(serial), doc(doc){}
+    Log(unsigned int deviceID, Stream& serial, DynamicJsonDocument& doc): deviceID(deviceID), serial(serial), doc(doc){}
     void setup_hook();
     void info(const char* msg);
     void error(const char* error);
@@ -32,10 +32,11 @@ public:
         serializeJson(doc, serial);
     }
 private:
-    HardwareSerial serial;
-    DynamicJsonDocument doc;
+    Stream& serial;
+    DynamicJsonDocument& doc;
     unsigned long last_timestamp;
     unsigned long last_millis;
+    unsigned int deviceID;
 };
 
 void Log::setup_hook(){
