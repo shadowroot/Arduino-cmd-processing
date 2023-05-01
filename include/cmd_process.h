@@ -14,7 +14,8 @@
 enum CMDTypes {
     LOG,
     RPC,
-    ACTION
+    ACTION,
+    EVENT
 };
 
 
