@@ -1,29 +1,55 @@
+
+#ifndef CMD_PROCESS_H
+#define CMD_PROCESS_H
+
+
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include "log.h"
 
-using namespace std;
+/**
+ * Define your commands
+ */
 
-class CMD {
+enum CMDTypes {
+    LOG,
+    RPC,
+    ACTION
+};
+
+
+/**
+ * @brief CMDSerial class
+ * 
+*/
+class CMDSerial {
 public:
-    int cmd;
-    void* data; //usually arguments struct - typecast
-    /*
-    Internal process states
-    */
-    //hopefully optimized
-    //consider int and bit masks
-    bool cmd_started; // cmd processing started
-    bool cmd_processed; // cmd successfully parsed
-    bool cmd_executed; //cmd executed successfully
-    bool cmd_set; //cmd code recognized
-    bool cmd_data_processed; // additional data successfully parsed
+    CMDSerial(const HardwareSerial& serial, const DynamicJsonDocument& doc, const Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
+    void setup_hook();
+    void loop_hook();
+    void cmdProcess();
+private:
+    DynamicJsonDocument doc;
+    HardwareSerial serial;
+    Log log;
+    char *errorMsg;
+    bool errorProcessing;
+};
 
-    static const char ENDLINE = '\n';
-    CMD(): cmd(-1), data(NULL), cmd_started(false), cmd_processed(false) {}
-    void clean(){
-        cmd = -1;
-        data = NULL;
-        cmd_started = false;
-        cmd_processed = false;
-        endline_reached = false;
+void CMDSerial::setup_hook(){
+
+}
+
+void CMDSerial::loop_hook(){
+    if (serial.available() > 0) {
+        DeserializationError error = deserializeJson(doc, serial);
+        if (error) {
+            char buf[100];
+            strcpy(buf ,"deserializeJson() failed: ");
+            strncpy(&buf[28], error.c_str(), 73);
+            log.printError(buf);
+        }
     }
 }
+
+#endif // CMD_PROCESS_H

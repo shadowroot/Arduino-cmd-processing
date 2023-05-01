@@ -7,3 +7,9 @@
 [submodule "lib/RemoteArduino"]
 	path = lib/RemoteArduino
 	url = https://github.com/JayLooi/RemoteArduino.git
+[submodule "lib/ArduinoJson"]
+	path = lib/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+[submodule "lib/simpleRPC"]
+	path = lib/simpleRPC
+	url = https://github.com/jfjlaros/simpleRPC.git
