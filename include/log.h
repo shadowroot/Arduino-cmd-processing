@@ -8,8 +8,9 @@ class Log {
 public:
     Log(const HardwareSerial& serial, const DynamicJsonDocument& doc): serial(serial), doc(doc){}
     void setup_hook();
-    void printInfo(const char* msg);
-    void printError(const char* error);
+    void info(const char* msg);
+    void error(const char* error);
+    void debug(const char* msg);
     unsigned long get_timestamp(){
         return last_timestamp + (millis() - last_millis) / 1000;
     }
@@ -40,7 +41,7 @@ private:
 void Log::setup_hook(){
 }
 
-void Log::printInfo(const char* msg){
+void Log::info(const char* msg){
     doc.clear();
     doc["type"] = "log";
     doc["level"] = "info";
@@ -49,11 +50,20 @@ void Log::printInfo(const char* msg){
     serializeJson(doc, serial);
 }
 
-void Log::printError(const char* error){
+void Log::error(const char* error){
     doc.clear();
     doc["type"] = "log";
     doc["level"] = "error";
     doc["message"] = error;
+    doc["timestamp"] = get_timestamp();
+    serializeJson(doc, serial);
+}
+
+void Log::debug(const char* msg){
+    doc.clear();
+    doc["type"] = "log";
+    doc["level"] = "debug";
+    doc["message"] = msg;
     doc["timestamp"] = get_timestamp();
     serializeJson(doc, serial);
 }
