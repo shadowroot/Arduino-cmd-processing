@@ -1,6 +1,5 @@
-
-#ifndef CMD_PROCESS_H
-#define CMD_PROCESS_H
+#ifndef ASYNC_COMM_H
+#define ASYNC_COMM_H
 
 
 #include <Arduino.h>
@@ -12,7 +11,7 @@
  * Define your commands
  */
 
-enum CMDTypes {
+enum CommType {
     LOG,
     RPC,
     EVENT
@@ -20,7 +19,7 @@ enum CMDTypes {
 
 
 /**
- * @brief CMDSerial class
+ * @brief AsyncComm class
  * Compromises - 
  * 1. JSON, if you want to use just RPC without any asynchronous events, then you're better off using simpleRPC library.
  * 2. No support for multiple arguments, but you can use single argument.
@@ -31,12 +30,12 @@ enum CMDTypes {
  * LOG messages are asynchronous, so they could be sent at any time.
  * RPC messages are synchronous, so they are sent only when the previous command is processed.
 */
-class CMDSerial {
+class AsyncComm {
 public:
-    CMDSerial(Stream& serial, DynamicJsonDocument& doc, Log& log): doc(doc), serial(serial), log(log), errorProcessing(false){}
+    AsyncComm(Stream* io, DynamicJsonDocument* doc, Log* log): doc(doc), io(io), log(log), errorProcessing(false){}
     void setup_hook();
     void loop_hook();
-    void cmdProcess();
+    void msgProcess();
     void processLog();
     void processRPC();
     void processEvent();
@@ -61,57 +60,71 @@ public:
         }
     }
     bool isLog(){
-        return strcmp(doc["type"], "log") == 0;
+        return strcmp(getDoc()["type"], "log") == 0;
     }
     bool isRPC(){
-        return strcmp(doc["type"], "rpc") == 0;
+        return strcmp(getDoc()["type"], "rpc") == 0;
     }
     bool isEvent(){
-        return strcmp(doc["type"], "event") == 0;
+        return strcmp(getDoc()["type"], "event") == 0;
     }
     bool receivedMsg(){
-        return doc.size() > 0;
+        return doc->size() > 0;
     }
-    bool isCmdProcessedSuccessfully(){
-        return cmdProcessedSuccessfully;
+    bool ismsgProcessedSuccessfully(){
+        return msgProcessedSuccessfully;
     }
     void sendMsg(DynamicJsonDocument& doc){
-        serializeJson(doc, serial);
+        ioizeJson(doc, io);
     }
     DynamicJsonDocument& getDoc(){
-        return doc;
+        return *doc;
+    }
+    void createMessage(){
+        getDoc().clear();
+        getDoc()["deviceID"] = deviceID;
+        getDoc()["msgID"] = msgID;
+        getDoc()["timestamp"] = getTimestamp();
+    }
+    void setTimestamp(unsigned long timestamp){
+        this->timestamp = timestamp-(millis()/1000);
+    }
+    unsigned long getTimestamp(){
+        return timestamp + (millis()/1000);
     }
 private:
-    DynamicJsonDocument& doc;
-    Stream& serial;
-    Log& log;
+    DynamicJsonDocument* doc;
+    Stream* io;
+    Log* log;
     char *errorMsg;
     bool errorProcessing;
     CMD<void (*)(),const char *,void*, void*> * cmd;
-    CMDTypes type;
-    bool cmdProcessedSuccessfully;
+    CommType type;
+    bool msgProcessedSuccessfully;
     bool processingMsg;
     unsigned int msgID;
+    unsigned int deviceID;
+    unsigned long timestamp;
 };
 
-void CMDSerial::setup_hook(){
+void AsyncComm::setup_hook(){
 
 }
 
-void CMDSerial::loop_hook(){
-    if (serial.available() > 0) {
-        DeserializationError error = deserializeJson(doc, serial);
+void AsyncComm::loop_hook(){
+    if (io->available() > 0) {
+        DeioizationError error = deioizeJson(getDoc(), *io);
         if (error) {
             char buf[100];
-            strcpy(buf ,"deserializeJson() failed: ");
+            strcpy(buf ,"deioizeJson() failed: ");
             strncpy(&buf[28], error.c_str(), 73);
-            log.error(buf);
+            log->error(buf);
         }
     }
 }
 
-void CMDSerial::cmdProcess(){
+void AsyncComm::msgProcess(){
     
 }
 
-#endif // CMD_PROCESS_H
+#endif // ASYNC_COMM_H

@@ -8,7 +8,7 @@
 
 class CMDRouter{
     public:
-        CMDRouter(unsigned int deviceID, CMDSerial* cmdSerial1, CMDSerial* cmdSerial2, const Log& log): deviceID(deviceID), cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), log(log){}
+        CMDRouter(unsigned int deviceID, CMDSerial* cmdSerial1, CMDSerial* cmdSerial2, Log* log): deviceID(deviceID), cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), log(log){}
         void setup_hook(){
             cmdSerial1->setup_hook();
             cmdSerial2->setup_hook();
@@ -17,16 +17,16 @@ class CMDRouter{
             cmdSerial1->loop_hook();
             cmdSerial2->loop_hook();
             if(cmdSerial1->receivedMsg() && !cmdSerial1->isCmdProcessedSuccessfully()){
-                log.info("Routing message from cmdSerial1 to cmdSerial2");
+                log->info("Routing message from cmdSerial1 to cmdSerial2");
                 cmdSerial2->sendMsg(cmdSerial1->getDoc());
             }
             else if(cmdSerial2->receivedMsg() && !cmdSerial2->isCmdProcessedSuccessfully()){
-                log.info("Routing message from cmdSerial2 to cmdSerial1");
+                log->info("Routing message from cmdSerial2 to cmdSerial1");
                 cmdSerial1->sendMsg(cmdSerial2->getDoc());
             }
         }
     private:
-        Log& log;
+        Log * log;
         CMDSerial * cmdSerial1;
         CMDSerial * cmdSerial2;
         unsigned int deviceID;
