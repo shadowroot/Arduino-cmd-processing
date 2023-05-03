@@ -41,7 +41,7 @@ public:
     virtual void processRPC();
     virtual void processEvent();
     bool searchAndCallCmd(const char * cmdName){
-        CMD<void (*)(),const char *,void*, void*> * cmd_ptr = cmd;
+        CMD* cmd_ptr = cmd;
         while(cmd_ptr != NULL){
             if(cmd_ptr->isFunction(cmdName)){
                 cmd_ptr->_call();
@@ -122,7 +122,7 @@ protected:
     Log* log;
     char *errorMsg;
     bool errorProcessing;
-    CMD<void (*)(),const char *,void*, void*> * cmd;
+    CMD * cmd;
     CommType type;
     bool msgProcessedSuccessfully;
     bool processingMsg;
