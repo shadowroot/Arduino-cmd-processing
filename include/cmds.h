@@ -1,6 +1,5 @@
 #ifndef CMDS_H
 #define CMDS_H
-#include "cmd_process.h"
 #include "log.h"
 
 /**

@@ -36,19 +36,19 @@ public:
     void setup_hook();
     void loop_hook();
     void msgProcess();
-    void processLog();
-    void processRPC();
-    void processEvent();
-    void searchAndCallCmd(const char * cmdName){
+    virtual void processLog();
+    virtual void processRPC();
+    virtual void processEvent();
+    bool searchAndCallCmd(const char * cmdName){
         CMD<void (*)(),const char *,void*, void*> * cmd_ptr = cmd;
         while(cmd_ptr != NULL){
             if(cmd_ptr->isFunction(cmdName)){
                 cmd_ptr->_call();
-
-                return;
+                return true;
             }
             cmd_ptr = cmd_ptr->_next();
         }
+        return false;
     }
     void determineType(){
         if(isLog()){
@@ -75,7 +75,7 @@ public:
         return msgProcessedSuccessfully;
     }
     void sendMsg(DynamicJsonDocument& doc){
-        ioizeJson(doc, io);
+        serializeJson(doc, io);
     }
     DynamicJsonDocument& getDoc(){
         return *doc;
@@ -86,13 +86,21 @@ public:
         getDoc()["msgID"] = msgID;
         getDoc()["timestamp"] = getTimestamp();
     }
+    void createRPCMessage(){
+        createMessage();
+        getDoc()["type"] = "rpc";
+    }
+    void createEventMessage(){
+        createMessage();
+        getDoc()["type"] = "event";
+    }
     void setTimestamp(unsigned long timestamp){
         this->timestamp = timestamp-(millis()/1000);
     }
     unsigned long getTimestamp(){
         return timestamp + (millis()/1000);
     }
-private:
+protected:
     DynamicJsonDocument* doc;
     Stream* io;
     Log* log;
@@ -113,18 +121,44 @@ void AsyncComm::setup_hook(){
 
 void AsyncComm::loop_hook(){
     if (io->available() > 0) {
-        DeioizationError error = deioizeJson(getDoc(), *io);
+        DeserializationError error = deserializeJson(getDoc(), *io);
         if (error) {
-            char buf[100];
-            strcpy(buf ,"deioizeJson() failed: ");
-            strncpy(&buf[28], error.c_str(), 73);
-            log->error(buf);
+            log->error("deserializeJson() failed: %s", error.c_str());
         }
     }
 }
 
 void AsyncComm::msgProcess(){
-    
+    processingMsg = true;
+    determineType();
+    switch(type){
+        case LOG:
+            processLog();
+            break;
+        case RPC:
+            processRPC();
+            break;
+        case EVENT:
+            processEvent();
+            break;
+    }
+}
+
+void AsyncComm::processLog(){
+    //log->info("Processing log message");
+    //msgProcessedSuccessfully = true;
+}
+
+void AsyncComm::processRPC(){
+    //log->info("Processing rpc message");
+    if(searchAndCallCmd(getDoc()["cmd"])){
+        msgProcessedSuccessfully = true;
+    }
+}
+
+void AsyncComm::processEvent(){
+    //log->info("Processing event message");
+    //msgProcessedSuccessfully = true;
 }
 
 #endif // ASYNC_COMM_H
