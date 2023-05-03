@@ -6,6 +6,7 @@
 #include <ArduinoJson.h>
 #include "log.h"
 #include "cmds.h"
+#include "config.h"
 
 /**
  * Define your commands
@@ -77,6 +78,9 @@ public:
     void sendMsg(DynamicJsonDocument& doc){
         serializeJson(doc, io);
     }
+    void sendMsg(){
+        serializeJson(*doc, io);
+    }
     DynamicJsonDocument& getDoc(){
         return *doc;
     }
@@ -89,6 +93,15 @@ public:
     void createRPCMessage(){
         createMessage();
         getDoc()["type"] = "rpc";
+    }
+    void addRPCResult(const char * result){
+        getDoc()["result"] = result;
+    }
+    void addRPCResult(int result){
+        getDoc()["result"] = result;
+    }
+    void addRPCResult(float result){
+        getDoc()["result"] = result;
     }
     void createEventMessage(){
         createMessage();
@@ -113,6 +126,7 @@ protected:
     unsigned int msgID;
     unsigned int deviceID;
     unsigned long timestamp;
+    char from[DEVICE_NAME_MAX_LEN];
 };
 
 void AsyncComm::setup_hook(){
