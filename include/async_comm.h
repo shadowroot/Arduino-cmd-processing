@@ -33,7 +33,7 @@ enum CommType {
 */
 class AsyncComm {
 public:
-    AsyncComm(Stream* io, DynamicJsonDocument* doc, Log* log): doc(doc), io(io), log(log), errorProcessing(false){}
+    AsyncComm(Stream* io, DynamicJsonDocument* doc, Log* log, char * deviceName = "unknown"): doc(doc), io(io), log(log), errorProcessing(false), deviceName(deviceName){}
     void setup_hook();
     void loop_hook();
     void msgProcess();
@@ -84,9 +84,12 @@ public:
     DynamicJsonDocument& getDoc(){
         return *doc;
     }
+    Stream& getIO(){
+        return *io;
+    }
     void createMessage(){
         getDoc().clear();
-        getDoc()["deviceID"] = deviceID;
+        getDoc()["deviceName"] = deviceName;
         getDoc()["msgID"] = msgID;
         getDoc()["timestamp"] = getTimestamp();
     }
@@ -124,7 +127,7 @@ protected:
     bool msgProcessedSuccessfully;
     bool processingMsg;
     unsigned int msgID;
-    unsigned int deviceID;
+    char * deviceName;
     unsigned long timestamp;
     char from[DEVICE_NAME_MAX_LEN];
 };

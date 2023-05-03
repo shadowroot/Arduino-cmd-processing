@@ -6,7 +6,7 @@
 
 class Log {
 public:
-    Log(unsigned int deviceID, Stream& serial, DynamicJsonDocument& doc): deviceID(deviceID), serial(serial), doc(doc){}
+    Log(AsyncComm * asyncComm): asyncComm(asyncComm){}
     void setup_hook();
     void info(const char* fmt...);
     const char* formatString(const char *fmt...);
@@ -15,29 +15,30 @@ public:
     unsigned long get_timestamp(){
         return last_timestamp + (millis() - last_millis) / 1000;
     }
+    DynamicJsonDocument& getDoc(){
+        return asyncComm->getDoc();
+    }
     void cleanDoc(){
-        doc.clear();
+        getDoc().clear();
     }
     void set_timestamp(unsigned long timestamp){
         last_timestamp = timestamp;
     }
     void createDataDoc(){
-        doc.clear();
-        doc["type"] = "data";
-        doc["timestamp"] = get_timestamp();
+        getDoc().clear();
+        getDoc()["type"] = "data";
+        getDoc()["timestamp"] = get_timestamp();
     }
     void buildDoc(const char* attr, const char* value){
-        doc[attr] = value;
+        getDoc()[attr] = value;
     }
     void sendDoc(){
-        serializeJson(doc, serial);
+        serializeJson(getDoc(), asyncComm->getIO());
     }
 private:
-    Stream& serial;
-    DynamicJsonDocument& doc;
+    AsyncComm * asyncComm;
     unsigned long last_timestamp;
     unsigned long last_millis;
-    unsigned int deviceID;
 };
 
 void Log::setup_hook(){
@@ -53,31 +54,31 @@ const char * Log::formatString(const char *fmt...){
 }
 
 void Log::info(const char* fmt...){
-    doc.clear();
-    doc["type"] = "log";
-    doc["level"] = "info";
-    doc["timestamp"] = get_timestamp();
-    doc["message"] = formatString(fmt);
-    serializeJson(doc, serial);
+    getDoc().clear();
+    getDoc()["type"] = "log";
+    getDoc()["level"] = "info";
+    getDoc()["timestamp"] = get_timestamp();
+    getDoc()["message"] = formatString(fmt);
+    serializeJson(getDoc(), asyncComm->getIO());
 }
 
 void Log::error(const char* fmt...){
-    doc.clear();
-    doc["type"] = "log";
-    doc["level"] = "error";
-    doc["timestamp"] = get_timestamp();
-    doc["message"] = formatString(fmt);
-    serializeJson(doc, serial);
+    getDoc().clear();
+    getDoc()["type"] = "log";
+    getDoc()["level"] = "error";
+    getDoc()["timestamp"] = get_timestamp();
+    getDoc()["message"] = formatString(fmt);
+    serializeJson(getDoc(), asyncComm->getIO());
 }
 
 
 void Log::debug(const char* fmt...){
-    doc.clear();
-    doc["type"] = "log";
-    doc["level"] = "debug";
-    doc["timestamp"] = get_timestamp();
-    doc["message"] = formatString(fmt);
-    serializeJson(doc, serial);
+    getDoc().clear();
+    getDoc()["type"] = "log";
+    getDoc()["level"] = "debug";
+    getDoc()["timestamp"] = get_timestamp();
+    getDoc()["message"] = formatString(fmt);
+    serializeJson(getDoc(), asyncComm->getIO());
 }
 
 #endif
