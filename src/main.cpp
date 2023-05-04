@@ -7,12 +7,11 @@
 
 DynamicJsonDocument doc(1024);
 AsyncComm asyncComm(&Serial, &doc);
-Logger logger(&asyncComm);
-CMDRouter cmdRouter("test_dev", &asyncComm, &asyncComm, &logger);
-CMD cmd("test", &logger);
+CMDRouter cmdRouter("test_dev", &asyncComm, &asyncComm);
+CMD cmd("test", &asyncComm);
 
 void setup() {
-  
+  asyncComm.setup_hook();
 }
 
 void loop() {

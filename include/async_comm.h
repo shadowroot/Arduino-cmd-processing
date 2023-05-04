@@ -4,7 +4,6 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "cmds.h"
 #include "config.h"
 
 /**
@@ -39,6 +38,28 @@ public:
     virtual void processLogger();
     virtual void processRPC();
     virtual void processEvent();
+    void logInfo(const char* fmt...);
+    const char* formatString(const char *fmt...);
+    void logError(const char* fmt...);
+    void logDebug(const char* fmt...);
+    unsigned long get_timestamp(){
+        return last_timestamp + (millis() - last_millis) / 1000;
+    }
+    void cleanDoc(){
+        getDoc().clear();
+    }
+    void set_timestamp(unsigned long timestamp){
+        last_timestamp = timestamp;
+    }
+    void createDataDoc(){
+        getDoc().clear();
+        getDoc()["type"] = "data";
+        getDoc()["timestamp"] = get_timestamp();
+    }
+    void sendDoc(){
+        serializeJson(getDoc(), getIO());
+    }
+    /*
     bool searchAndCallCmd(const char * cmdName){
         CMD* cmd_ptr = cmd;
         while(cmd_ptr != NULL){
@@ -50,6 +71,7 @@ public:
         }
         return false;
     }
+    */
     void determineType(){
         if(isLogger()){
             type = LOG;
@@ -75,16 +97,16 @@ public:
         return msgProcessedSuccessfully;
     }
     void sendMsg(DynamicJsonDocument& doc){
-        serializeJson(doc, io);
+        serializeJson(doc, getIO());
     }
     void sendMsg(){
-        serializeJson(*doc, io);
+        serializeJson(*doc, getIO());
     }
     DynamicJsonDocument& getDoc(){
         return *doc;
     }
-    Stream* getIO(){
-        return io;
+    Stream& getIO(){
+        return *io;
     }
     void createMessage(){
         getDoc().clear();
@@ -127,10 +149,10 @@ public:
 
 protected:
     DynamicJsonDocument* doc;
-    Stream* io;
-    char *errorMsg;
+    Stream * io;
+    const char *errorMsg;
     bool errorProcessing;
-    CMD * cmd;
+    //CMD * cmd;
     CommType type;
     bool msgProcessedSuccessfully;
     bool processingMsg;
@@ -138,6 +160,8 @@ protected:
     const char * deviceName;
     unsigned long timestamp;
     char from[DEVICE_NAME_MAX_LEN];
+    unsigned long last_timestamp;
+    unsigned long last_millis;
 };
 
 void AsyncComm::setup_hook(){
@@ -146,9 +170,9 @@ void AsyncComm::setup_hook(){
 
 void AsyncComm::loop_hook(){
     if (io->available() > 0) {
-        DeserializationError error = deserializeJson(getDoc(), *io);
+        DeserializationError error = deserializeJson(getDoc(), getIO());
         if (error) {
-            logger->error("deserializeJson() failed: %s", error.c_str());
+            logError("deserializeJson() failed: %s", error.c_str());
         }
     }
 }
@@ -176,9 +200,9 @@ void AsyncComm::processLogger(){
 
 void AsyncComm::processRPC(){
     //log->info("Processing rpc message");
-    if(searchAndCallCmd(getDoc()["cmd"])){
-        msgProcessedSuccessfully = true;
-    }
+    //if(searchAndCallCmd(getDoc()["cmd"])){
+    //    msgProcessedSuccessfully = true;
+    //}
 }
 
 void AsyncComm::processEvent(){
@@ -186,44 +210,8 @@ void AsyncComm::processEvent(){
     //msgProcessedSuccessfully = true;
 }
 
-class Logger {
-public:
-    Logger(AsyncComm * asyncComm): asyncComm(asyncComm){}
-    void setup_hook();
-    void info(const char* fmt...);
-    const char* formatString(const char *fmt...);
-    void error(const char* fmt...);
-    void debug(const char* fmt...);
-    unsigned long get_timestamp(){
-        return last_timestamp + (millis() - last_millis) / 1000;
-    }
-    DynamicJsonDocument& getDoc(){
-        return asyncComm->getDoc();
-    }
-    void cleanDoc(){
-        getDoc().clear();
-    }
-    void set_timestamp(unsigned long timestamp){
-        last_timestamp = timestamp;
-    }
-    void createDataDoc(){
-        getDoc().clear();
-        getDoc()["type"] = "data";
-        getDoc()["timestamp"] = get_timestamp();
-    }
-    void sendDoc(){
-        serializeJson(getDoc(), asyncComm->getIO());
-    }
-private:
-    AsyncComm * asyncComm;
-    unsigned long last_timestamp;
-    unsigned long last_millis;
-};
 
-void Logger::setup_hook(){
-}
-
-const char * Logger::formatString(const char *fmt...){
+const char * AsyncComm::formatString(const char *fmt...){
     char buf[256];
     va_list args;
     va_start(args, fmt);
@@ -232,32 +220,32 @@ const char * Logger::formatString(const char *fmt...){
     return buf;
 }
 
-void Logger::info(const char* fmt...){
+void AsyncComm::logInfo(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "info";
     getDoc()["timestamp"] = get_timestamp();
     getDoc()["message"] = formatString(fmt);
-    serializeJson(getDoc(), *asyncComm->getIO());
+    serializeJson(getDoc(), getIO());
 }
 
-void Logger::error(const char* fmt...){
+void AsyncComm::logError(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "error";
     getDoc()["timestamp"] = get_timestamp();
     getDoc()["message"] = formatString(fmt);
-    serializeJson(getDoc(), *asyncComm->getIO());
+    serializeJson(getDoc(), getIO());
 }
 
 
-void Logger::debug(const char* fmt...){
+void AsyncComm::logDebug(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "debug";
     getDoc()["timestamp"] = get_timestamp();
     getDoc()["message"] = formatString(fmt);
-    serializeJson(getDoc(), *asyncComm->getIO());
+    serializeJson(getDoc(), getIO());
 }
 
 

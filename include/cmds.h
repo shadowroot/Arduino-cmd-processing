@@ -38,9 +38,9 @@ enum ARGType {
 
 class CMD{
     public:
-        CMD(const char * name, Logger* logger): name(name), logger(logger){}
+        CMD(const char * name, AsyncComm* asyncComm): name(name), asyncComm(asyncComm){}
         void _register(char * (*f)(char*), const char * doc, char * arg, ARGType arg_type, ARGType result_type){
-            logger->info("Registering %s", name);
+            asyncComm->logInfo("Registering %s", name);
             this->f = f;
             this->doc = doc;
             this->arg = arg;
@@ -48,7 +48,7 @@ class CMD{
             this->result_type = result_type;
         }
         void _register(char * (*f)(), const char * doc, ARGType result_type){
-            logger->info("Registering %s", name);
+            asyncComm->logInfo("Registering %s", name);
             this->f = (char * (*)(char*))f;
             this->doc = doc;
             this->arg = NULL;
@@ -56,7 +56,7 @@ class CMD{
             this->result_type = result_type;
         }
         void _call(){
-            logger->info("Calling %s", name);
+            asyncComm->logInfo("Calling %s", name);
             if(arg_type == VOID){
                 char * (*fn)() = (char * (*)())f;
                 result = fn();
@@ -81,7 +81,7 @@ class CMD{
             return result;
         }
     protected:
-        Logger * logger;
+        AsyncComm * asyncComm;
         const char * name;
         char * (*f)(char*);
         const char * doc;
