@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
-#include "log.h"
+#include "logger.h"
 #include "cmds.h"
 #include "config.h"
 
@@ -33,11 +33,14 @@ enum CommType {
 */
 class AsyncComm {
 public:
-    AsyncComm(Stream* io, DynamicJsonDocument* doc, Log* log, char * deviceName = "unknown"): doc(doc), io(io), log(log), errorProcessing(false), deviceName(deviceName){}
+    AsyncComm(Stream* io, DynamicJsonDocument* doc, const char * deviceName = "unknown"): doc(doc), io(io), errorProcessing(false), deviceName(deviceName), logger(NULL){}
+    void setLogger(Logger * logger){
+        this->logger = logger;
+    }
     void setup_hook();
     void loop_hook();
     void msgProcess();
-    virtual void processLog();
+    virtual void processLogger();
     virtual void processRPC();
     virtual void processEvent();
     bool searchAndCallCmd(const char * cmdName){
@@ -52,7 +55,7 @@ public:
         return false;
     }
     void determineType(){
-        if(isLog()){
+        if(isLogger()){
             type = LOG;
         }else if(isRPC()){
             type = RPC;
@@ -60,7 +63,7 @@ public:
             type = EVENT;
         }
     }
-    bool isLog(){
+    bool isLogger(){
         return strcmp(getDoc()["type"], "log") == 0;
     }
     bool isRPC(){
@@ -106,6 +109,15 @@ public:
     void addRPCResult(float result){
         getDoc()["result"] = result;
     }
+    void addMessageField(const char * key, const char * value){
+        getDoc()[key] = value;
+    }
+    void addMessageField(const char * key, int value){
+        getDoc()[key] = value;
+    }
+    void addMessageField(const char * key, float value){
+        getDoc()[key] = value;
+    }
     void createEventMessage(){
         createMessage();
         getDoc()["type"] = "event";
@@ -116,10 +128,14 @@ public:
     unsigned long getTimestamp(){
         return timestamp + (millis()/1000);
     }
+    Logger& getLogger(){
+        return *logger;
+    }
+
 protected:
     DynamicJsonDocument* doc;
     Stream* io;
-    Log* log;
+    Logger* logger;
     char *errorMsg;
     bool errorProcessing;
     CMD * cmd;
@@ -127,7 +143,7 @@ protected:
     bool msgProcessedSuccessfully;
     bool processingMsg;
     unsigned int msgID;
-    char * deviceName;
+    const char * deviceName;
     unsigned long timestamp;
     char from[DEVICE_NAME_MAX_LEN];
 };
@@ -140,7 +156,7 @@ void AsyncComm::loop_hook(){
     if (io->available() > 0) {
         DeserializationError error = deserializeJson(getDoc(), *io);
         if (error) {
-            log->error("deserializeJson() failed: %s", error.c_str());
+            logger->error("deserializeJson() failed: %s", error.c_str());
         }
     }
 }
@@ -150,7 +166,7 @@ void AsyncComm::msgProcess(){
     determineType();
     switch(type){
         case LOG:
-            processLog();
+            processLogger();
             break;
         case RPC:
             processRPC();
@@ -161,7 +177,7 @@ void AsyncComm::msgProcess(){
     }
 }
 
-void AsyncComm::processLog(){
+void AsyncComm::processLogger(){
     //log->info("Processing log message");
     //msgProcessedSuccessfully = true;
 }

@@ -1,6 +1,7 @@
 #ifndef CMDS_H
 #define CMDS_H
-#include "log.h"
+
+#include "logger.h"
 
 /**
  * Define your commands
@@ -17,7 +18,7 @@ enum ARGType {
 // template <class T>
 // class CMDArg{
 //     public:
-//         CMDArg(const Log& log):log(log), size(0){}
+//         CMDArg(const Logger& logger):logger(logger), size(0){}
 //         void _type(ARGType type){
 //             this->type = type;
 //         }
@@ -29,7 +30,7 @@ enum ARGType {
 //             return &data;
 //         }
 //     private:
-//         Log log;
+//         Logger logger;
 //         ARGType type;
 //         T data;
 //         int size;
@@ -37,9 +38,9 @@ enum ARGType {
 
 class CMD{
     public:
-        CMD(const char * name, Log* log): name(name), log(log){}
+        CMD(const char * name, Logger* logger): name(name), logger(logger){}
         void _register(char * (*f)(char*), const char * doc, char * arg, ARGType arg_type, ARGType result_type){
-            log->info("Registering %s", name);
+            logger->info("Registering %s", name);
             this->f = f;
             this->doc = doc;
             this->arg = arg;
@@ -47,7 +48,7 @@ class CMD{
             this->result_type = result_type;
         }
         void _register(char * (*f)(), const char * doc, ARGType result_type){
-            log->info("Registering %s", name);
+            logger->info("Registering %s", name);
             this->f = (char * (*)(char*))f;
             this->doc = doc;
             this->arg = NULL;
@@ -55,7 +56,7 @@ class CMD{
             this->result_type = result_type;
         }
         void _call(){
-            log->info("Calling %s", name);
+            logger->info("Calling %s", name);
             if(arg_type == VOID){
                 char * (*fn)() = (char * (*)())f;
                 result = fn();
@@ -80,7 +81,7 @@ class CMD{
             return result;
         }
     protected:
-        Log * log;
+        Logger * logger;
         const char * name;
         char * (*f)(char*);
         const char * doc;

@@ -1,12 +1,13 @@
-#ifndef LOG_H
-#define LOG_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include "async_comm.h"
 
-class Log {
+class Logger {
 public:
-    Log(AsyncComm * asyncComm): asyncComm(asyncComm){}
+    Logger(AsyncComm * asyncComm): asyncComm(asyncComm){}
     void setup_hook();
     void info(const char* fmt...);
     const char* formatString(const char *fmt...);
@@ -41,10 +42,10 @@ private:
     unsigned long last_millis;
 };
 
-void Log::setup_hook(){
+void Logger::setup_hook(){
 }
 
-const char * Log::formatString(const char *fmt...){
+const char * Logger::formatString(const char *fmt...){
     char buf[256];
     va_list args;
     va_start(args, fmt);
@@ -53,7 +54,7 @@ const char * Log::formatString(const char *fmt...){
     return buf;
 }
 
-void Log::info(const char* fmt...){
+void Logger::info(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "info";
@@ -62,7 +63,7 @@ void Log::info(const char* fmt...){
     serializeJson(getDoc(), asyncComm->getIO());
 }
 
-void Log::error(const char* fmt...){
+void Logger::error(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "error";
@@ -72,7 +73,7 @@ void Log::error(const char* fmt...){
 }
 
 
-void Log::debug(const char* fmt...){
+void Logger::debug(const char* fmt...){
     getDoc().clear();
     getDoc()["type"] = "log";
     getDoc()["level"] = "debug";
