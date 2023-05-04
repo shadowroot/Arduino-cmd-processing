@@ -1,8 +1,7 @@
-#include "async_comm.h"
-#include "logger.h"
-
 #ifndef CMD_ROUTING_H
 #define CMD_ROUTING_H
+
+#include "async_comm.h"
 
 /**
  * Define your commands
@@ -10,7 +9,7 @@
 
 class CMDRouter{
     public:
-        CMDRouter(unsigned int deviceID, AsyncComm* cmdSerial1, AsyncComm* cmdSerial2, Logger* logger): deviceID(deviceID), cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), logger(logger){}
+        CMDRouter(const char * deviceName, AsyncComm* cmdSerial1, AsyncComm* cmdSerial2, Logger* logger): deviceName(deviceName), cmdSerial1(cmdSerial1), cmdSerial2(cmdSerial2), logger(logger){}
         void setup_hook(){
             cmdSerial1->setup_hook();
             cmdSerial2->setup_hook();
@@ -31,7 +30,7 @@ class CMDRouter{
         Logger * logger;
         AsyncComm * cmdSerial1;
         AsyncComm * cmdSerial2;
-        unsigned int deviceID;
+        const char * deviceName;
 };
 
 #endif // CMD_ROUTING_H

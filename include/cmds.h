@@ -1,7 +1,7 @@
 #ifndef CMDS_H
 #define CMDS_H
 
-#include "logger.h"
+#include "async_comm.h"
 
 /**
  * Define your commands

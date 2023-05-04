@@ -1,0 +1,4 @@
+*.o
+*.swp
+examples/demo/.build/
+tests/run_tests
