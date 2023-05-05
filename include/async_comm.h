@@ -136,6 +136,12 @@ public:
     void addMessageField(const char * key, float value){
         getDoc()[key] = value;
     }
+    const char * getDocKey(const char * key){
+        if (getDoc().containsKey(key) == true){
+            return getDoc()[key];
+        }
+        return NULL;
+    }
     void createEventMessage(){
         createMessage();
         getDoc()["type"] = "event";
